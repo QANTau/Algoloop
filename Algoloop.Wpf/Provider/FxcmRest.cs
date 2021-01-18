@@ -30,7 +30,7 @@ namespace Algoloop.Wpf.Provider
             Contract.Requires(broker != null);
 
             _api = new FxcmClient(broker.Access, broker.ApiKey);
-            if (!_api.LoginAsync())
+            if (!_api.LoginAsync().Result)
             {
                 return (IReadOnlyList<AccountModel>)Enumerable.Empty<AccountModel>();
             }
@@ -41,7 +41,7 @@ namespace Algoloop.Wpf.Provider
 
         public override void Logout()
         {
-            if (!_api.LoginAsync())
+            if (!_api.LoginAsync().Result)
             {
                 Log.Error("{0}: Logout failed", GetType().Name);
             }

@@ -13,11 +13,14 @@
  */
 
 using Algoloop.Brokerages.FxcmRest;
+using Algoloop.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QuantConnect;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using static Algoloop.Model.ProviderModel;
 
 namespace Algoloop.Tests.Brokerages
@@ -58,29 +61,29 @@ namespace Algoloop.Tests.Brokerages
         }
 
         [TestMethod]
-        public void LoginAsync()
+        public async Task LoginAsync()
         {
             // Act
-            bool connected = _api.LoginAsync();
-            bool disconnected = _api.LogoutAsync();
+            bool connected = await _api.LoginAsync().ConfigureAwait(true);
+            bool disconnected = await _api.LogoutAsync().ConfigureAwait(true);
 
             Assert.IsTrue(connected);
             Assert.IsTrue(disconnected);
         }
 
-        //[TestMethod]
-        //public async Task GetAccountsAsync()
-        //{
-        //    // Act
-        //    bool connected = await _api.LoginAsync().ConfigureAwait(false);
-        //    IReadOnlyList<AccountModel> accounts = await _api.GetAccountsAsync().ConfigureAwait(true);
-        //    bool disconnected = await _api.LogoutAsync().ConfigureAwait(true);
+        [TestMethod]
+        public async Task GetAccountsAsync()
+        {
+            // Act
+            bool connected = await _api.LoginAsync().ConfigureAwait(false);
+            IReadOnlyList<AccountModel> accounts = await _api.GetAccountsAsync().ConfigureAwait(true);
+            bool disconnected = await _api.LogoutAsync().ConfigureAwait(true);
 
-        //    Assert.IsTrue(connected);
-        //    Assert.IsTrue(disconnected);
-        //    Assert.IsNotNull(accounts);
-        //    Assert.IsTrue(accounts.Count > 0);
-        //}
+            Assert.IsTrue(connected);
+            Assert.IsTrue(disconnected);
+            Assert.IsNotNull(accounts);
+            Assert.IsTrue(accounts.Count > 0);
+        }
 
         protected virtual void Dispose(bool disposing)
         {

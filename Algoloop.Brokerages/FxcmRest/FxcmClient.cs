@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Algoloop.Model;
 using Newtonsoft.Json.Linq;
 using QuantConnect.Logging;
+using SocketIOClient;
 using static Algoloop.Model.ProviderModel;
 
 namespace Algoloop.Brokerages.FxcmRest
@@ -41,9 +42,9 @@ namespace Algoloop.Brokerages.FxcmRest
         private bool _isDisposed;
         private readonly string _baseUrl;
         private readonly string _key;
-        private Socket _socketio;
         private readonly HttpClient _httpClient;
         private ManualResetEvent _hold = new ManualResetEvent(false);
+        private SocketIO _socketio;
 
         public FxcmClient(ProviderModel.AccessType access, string key)
         {
@@ -55,39 +56,29 @@ namespace Algoloop.Brokerages.FxcmRest
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "request");
         }
 
-        public bool LoginAsync()
+        public async Task<bool> LoginAsync()
         {
             var uri = new Uri(_baseUrl);
-            var options = new IO.Options
+            var options = new SocketIOOptions
             {
-//                Path = "/socket.io",
-                Port = uri.Port,
-                Host = uri.Host,
-                Secure = true,
-                IgnoreServerCertificateValidation = true,
-                Query = new Dictionary<string, string> { { "access_token", _key } },
-                AutoConnect = true
+                Query = new Dictionary<string, string> { { "access_token", _key } }
             };
-            string url = $"{_baseUrl}/?access_token={_key}";
-            _socketio = IO.Socket(uri, options);
-            _socketio.On(Socket.EVENT_CONNECT, () =>
+            _socketio = new SocketIO(_baseUrl, options);
+            _socketio.OnConnected += (sender, e) => _hold.Set();
+            _socketio.OnError += (object sender, string e) => Log.Error(e);
+            await _socketio.ConnectAsync();
+            if (!_hold.WaitOne(TimeSpan.FromSeconds(10)))
             {
-                _hold.Set();
-            });
-            _socketio.On(Socket.EVENT_ERROR, (e) =>
-            {
-                Log.Error(e.ToString());
-            });
-
-            if (!_hold.WaitOne(TimeSpan.FromSeconds(20))) return false;
-            string bearer = "_socketio.Id" + _key;
+                return false;
+            }
+            string bearer = _socketio.Id + _key;
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
             return true;
         }
 
-        public bool LogoutAsync()
+        public async Task<bool> LogoutAsync()
         {
-            _socketio.Disconnect();
+            await _socketio.DisconnectAsync();
             return true;
         }
 
