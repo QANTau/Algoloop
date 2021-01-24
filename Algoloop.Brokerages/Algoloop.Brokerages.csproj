@@ -32,9 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SocketIOClient, Version=2.1.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SocketIOClient.2.1.3\lib\net45\SocketIOClient.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -88,6 +85,9 @@
     </PackageReference>
     <PackageReference Include="Otp.NET">
       <Version>1.2.2</Version>
+    </PackageReference>
+    <PackageReference Include="SocketIOClient">
+      <Version>2.1.3</Version>
     </PackageReference>
     <PackageReference Include="System.IO.Compression">
       <Version>4.3.0</Version>
